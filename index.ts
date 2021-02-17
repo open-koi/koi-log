@@ -1,8 +1,9 @@
 import fs from 'fs';
 import { Request, Response } from 'express';
-import path, { resolve } from 'path';
+import path from 'path';
 import { sha256 } from 'js-sha256';
 import cryptoRandomString = require("crypto-random-string")
+import cron from 'node-cron';
 
 const logFileLocation = path.join(__dirname, '../../daily.log')
 const rawLogFileLocation = path.join(__dirname, '../../access.log')
@@ -32,7 +33,7 @@ function getLogSalt () {
 
 }
 
-export const logsHelper = function (req: Request, res: Response) {
+export const koiLogsHelper = function (req: Request, res: Response) {
     // console.log('logs file path is ', logFileLocation)
     fs.readFile(logFileLocation, 'utf8', (err : any, data : any) => {
       if (err) {
@@ -43,6 +44,14 @@ export const logsHelper = function (req: Request, res: Response) {
       // console.log(data)
       res.status(200).send(data);
     })
+}
+
+export const koiLogsDailyTask = function () {
+  return cron.schedule('0 0 * * *', async function() {
+    console.log('running the log cleanup task once per day on ', new Date () );
+    var result = await logsTask()
+    console.log('daily log task returned ', result)
+  });
 }
 
 export const logsTask = async function () {
