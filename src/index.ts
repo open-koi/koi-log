@@ -4,6 +4,7 @@ import path from 'path';
 import { sha256 } from 'js-sha256';
 import cryptoRandomString = require("crypto-random-string")
 import cron from 'node-cron';
+import koiLogMiddleware from './middleware';
 
 const logFileLocation = path.join(__dirname, '../../daily.log')
 const rawLogFileLocation = path.join(__dirname, '../../access.log')
@@ -31,6 +32,12 @@ function getLogSalt () {
 
   return sha256(cryptoRandomString({length: 10}))
 
+}
+
+export const joinKoi = function (app) {
+  app.use(koiLogMiddleware);
+  app.get("/logs", koiLogsHelper);
+  koiLogsDailyTask() // start the daily log task
 }
 
 export const koiLogsHelper = function (req: Request, res: Response) {
@@ -100,7 +107,7 @@ async function readRawLogs(masterSalt: string) {
           }
         } else {
           console.error('tried to parse log, but skipping because log is ', log)
-          reject(err)
+          reject({})
         }
       } catch (err) {
         console.error('err', err)
