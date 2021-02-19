@@ -10,7 +10,7 @@ const accessLogStream = fs.createWriteStream(logFileLocation, {flags: 'a'});
 
 export function logConfigurationMiddleware(req: Request, res: Response, next: NextFunction) {
   const trace = id.generate();
-@@ -15,4 +21,5 @@ morgan.token('trace', (req: Request) => {
+  morgan.token('trace', (req: Request) => {
   return req.id || 'UNKNOWN';
 });
 
