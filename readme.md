@@ -4,7 +4,7 @@ Koi is a network designed to reward and help to coordinate the creation of publi
 ## Implementation
 The Koi gateway logging middleware can be implemented for express servers by adding the following three lines shown below:
 ```
-// add koi tasks
+// add koi integration
 app.use(koiLogMiddleware);
 app.get("/logs", koiLogsHelper);
 koiLogsDailyTask() // start the daily log task
