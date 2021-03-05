@@ -15,8 +15,9 @@ const { joinKoi } = require('koi-logs');
 const app = new Express (); // create a new express server
 
 joinKoi(app); // add the koi library
+```
 
-// now, any traffic on your gateway will automatically be obfuscated and provided to the koi network, and you'll earn some koi. 
+Now, any traffic on your gateway will automatically be obfuscated and provided to the koi network, and you'll earn some koi. 
 
 ### Permissions
 Please note: your /tmp/ directory must be writeable to your runtime user to ensure that the logs can be written properly. 
