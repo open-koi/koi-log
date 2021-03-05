@@ -1,13 +1,27 @@
-import fs from 'fs';
+import * as fs from 'fs';
 import { Request, Response } from 'express';
 import path from 'path';
 import { sha256 } from 'js-sha256';
 import cryptoRandomString = require("crypto-random-string")
 import cron from 'node-cron';
-import koiLogMiddleware from './middleware';
+import { generateKoiMiddleware} from './middleware';
+import tmp from 'tmp';
 
-const logFileLocation = path.join(__dirname, '../../daily.log')
-const rawLogFileLocation = path.join(__dirname, '../../access.log')
+// these will be populated when the library is instantiated
+declare var logFileLocation: string;
+declare var rawLogFileLocation: string;
+declare var proofFileLocation: string;
+
+async function setDefaults() {
+  logFileLocation = "";
+  rawLogFileLocation = "";
+  proofFileLocation = "";
+}
+
+interface ExpressApp {
+  use: Function,
+  get: Function
+}
 
 interface RawLogs {
   address: string,
@@ -34,10 +48,14 @@ function getLogSalt () {
 
 }
 
-export const joinKoi = function (app) {
-  app.use(koiLogMiddleware);
+export const joinKoi = async function (app: ExpressApp) {
+  await setDefaults()
+  await generateLogFiles ()
+  const koiMiddleware = generateKoiMiddleware(logFileLocation)
+  app.use(koiMiddleware);
   app.get("/logs", koiLogsHelper);
   koiLogsDailyTask() // start the daily log task
+
 }
 
 export const koiLogsHelper = function (req: Request, res: Response) {
@@ -146,13 +164,70 @@ async function writeDailyLogs(logs:FormattedLogsArray) {
   })
 }
 
+async function generateLogFiles() {
+  return new Promise( async (resolve, reject)  => {
+    try {
+      // create three files (access.log, daily.log, and proofs.log) with names corresponding to the date
+      var date = new Date();
+      var names = [
+        date.toISOString().slice(0, 10) + '-access.log',
+        date.toISOString().slice(0, 10) + '-daily.log',
+        date.toISOString().slice(0, 10) + '-proofs.log',
+      ]
+
+      let paths: (string )[] = []
+      for (var name of names) {
+        try {
+
+          var path = await createLogFile(name) as string;
+
+          paths.push(path)
+
+
+        } catch (err) {
+          reject(err)
+        }
+      }
+
+      console.log('created paths', paths, paths[0])
+
+      // set the log file names in global vars
+      // sloppy, needs to move to cleaner OOP
+      logFileLocation = paths[0]
+      rawLogFileLocation = paths[1]
+      proofFileLocation = paths[2]
+
+      // return their file names to the caller
+      resolve(paths)
+
+    } catch (err) {
+      reject(err)
+    }
+  })
+}
+
+/*
+  generate the log files
+*/
+async function createLogFile(name: string) {
+  return new Promise(async (resolve, reject) => {
+    resolve('/tmp/' + name as string)
+    // tmp.file(function _tempFileCreated(err, path:string, fd) {
+    //   if (err) reject(err);
+    //   console.log('fd', fd)
+    //   console.log('File: ', path);
+    //   resolve (path);
+    // });
+  });
+}
+
 /* 
   @sortAndFilterLogs 
     logs - access.log output (raw data in array)
     resolves to an array of data payloads
 */
 async function sortAndFilterLogs(logs: RawLogs[]) {
-  return new Promise((resolve, reject) => {
+  return new Promise(async (resolve, reject) => {
     var formatted_logs = [] as FormattedLogsArray;
     
     try {
