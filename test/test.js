@@ -1,6 +1,6 @@
 const Express = require('express');
 // import { config } from 'dotenv';
-const { joinKoi } = require('koi-logs');
+const { joinKoi } = require('../dist/index.js');
 
 // config();
 

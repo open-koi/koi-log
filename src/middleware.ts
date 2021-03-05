@@ -5,13 +5,14 @@ import fs from 'fs';
 import path from 'path';
 
 // TODO: @theloneronin what's the best place to put this file?
-const logFileLocation = path.join(__dirname, '../../access.log');
+const logFileLocation = path.join(__dirname, '/tmp/access.log');
 const accessLogStream = fs.createWriteStream(logFileLocation, {flags: 'a'});
 
 export function logConfigurationMiddleware(req: Request, res: Response, next: NextFunction) {
   const trace = id.generate();
   morgan.token('trace', (req: Request) => {
-  return req.id || 'UNKNOWN';
-});
+    return req.id || 'UNKNOWN';
+  });
+}
 
 export const koiLogMiddleware = morgan('{"address":":remote-addr","user":":remote-user","date":":date","method":":method","url":":url","type":"HTTP/:http-version","status":":status","res":{"length":":res[content-length]","time" : ":response-time ms"}, "ref":":referrer","agent":":user-agent", "trace":":trace"}', {stream: accessLogStream});
