@@ -26,8 +26,10 @@ Please note: your /tmp/ directory must be writeable to your runtime user to ensu
 If you are building a tool that will interact with Koi gateways, you can submit two headers to opt into verifiable attention monitoring. This process is designed to be pseudonymous, but ensures the long term viability of attention tracking by substantiating raw traffic volume with bellweather data which can identify when there is a sufficiently large abnormality to represent possibly falsified traffic. 
 
 Proofs can be submitted by attaching two additional HTTP headers to all requests to gateways:
-KOI => `< base 64 sha 256 hash of id metadata + timestamp + requested resource, with difficulty below network limit >`
-KOI_ID => `< Any valid arweave address >`
+KOI => 
+`< base 64 sha 256 hash of id metadata + timestamp + requested resource, with difficulty below network limit >`
+KOI_ID => 
+`< Any valid arweave address >`
 
 The proof data is stored in the standard log files, and provides an added layer of security and verification. Participating members of the community, in turn, receive Koi tokens proportionate to their value as a bellweather. 
 
