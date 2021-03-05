@@ -18,8 +18,6 @@ joinKoi(app); // add the koi library
 
 // now, any traffic on your gateway will automatically be obfuscated and provided to the koi network, and you'll earn some koi. 
 
-```
-
 ### Permissions
 Please note: your /tmp/ directory must be writeable to your runtime user to ensure that the logs can be written properly. 
 
@@ -36,4 +34,4 @@ The proof data is stored in the standard log files, and provides an added layer 
 Each day, log files are updated over a 24 hour period, and subsequently released for public consumption via a /logs endpoint. 
 
 ## Example 
-Check test.ts for a full example of implementation.
+Check run `yarn test` to start.
