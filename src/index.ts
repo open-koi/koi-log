@@ -49,7 +49,7 @@ function getLogSalt() {
 }
 
 export const joinKoi = async function (app: ExpressApp) {
-  await setDefaults()
+  setDefaults()
   await generateLogFiles()
   const koiMiddleware = await generateKoiMiddleware(logFileLocation)
   app.use(koiMiddleware);
