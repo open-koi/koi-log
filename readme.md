@@ -1,3 +1,5 @@
+NOTE: This project is a work in progress. Currently testing is in progress on the Arweave Gateway Network, but this repo represents the current state of the work there for reference. 
+
 # Koi Logs SDK
 Koi is a network designed to reward and help to coordinate the creation of public data resources. Install the SDK to register your gateway to the network and begin receiving traffic awards when you contribute logging data.
 
