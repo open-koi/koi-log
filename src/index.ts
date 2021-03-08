@@ -4,15 +4,15 @@ import path from 'path';
 import { sha256 } from 'js-sha256';
 import cryptoRandomString = require("crypto-random-string")
 import cron from 'node-cron';
-import { generateKoiMiddleware} from './middleware';
+import { generateKoiMiddleware } from './middleware';
 import tmp from 'tmp';
 
 // these will be populated when the library is instantiated
-declare var logFileLocation: string;
-declare var rawLogFileLocation: string;
-declare var proofFileLocation: string;
+var logFileLocation: string;
+var rawLogFileLocation: string;
+var proofFileLocation: string;
 
-async function setDefaults() {
+function setDefaults() {
   logFileLocation = "";
   rawLogFileLocation = "";
   proofFileLocation = "";
@@ -42,16 +42,16 @@ interface FormattedLogsArray extends Array<FormattedLogs> {
   [key: string]: any
 }
 
-function getLogSalt () {
+function getLogSalt() {
 
-  return sha256(cryptoRandomString({length: 10}))
+  return sha256(cryptoRandomString({ length: 10 }))
 
 }
 
 export const joinKoi = async function (app: ExpressApp) {
-  await setDefaults()
-  await generateLogFiles ()
-  const koiMiddleware = generateKoiMiddleware(logFileLocation)
+  setDefaults()
+  await generateLogFiles()
+  const koiMiddleware = await generateKoiMiddleware(logFileLocation)
   app.use(koiMiddleware);
   app.get("/logs", koiLogsHelper);
   koiLogsDailyTask() // start the daily log task
@@ -59,21 +59,21 @@ export const joinKoi = async function (app: ExpressApp) {
 }
 
 export const koiLogsHelper = function (req: Request, res: Response) {
-    // console.log('logs file path is ', logFileLocation)
-    fs.readFile(logFileLocation, 'utf8', (err : any, data : any) => {
-      if (err) {
-        console.error(err)
-        res.status(500).send(err);
-        return
-      }
-      // console.log(data)
-      res.status(200).send(data);
-    })
+  // console.log('logs file path is ', logFileLocation)
+  fs.readFile(logFileLocation, 'utf8', (err: any, data: any) => {
+    if (err) {
+      console.error(err)
+      res.status(500).send(err);
+      return
+    }
+    // console.log(data)
+    res.status(200).send(data);
+  })
 }
 
 export const koiLogsDailyTask = function () {
-  return cron.schedule('0 0 * * *', async function() {
-    console.log('running the log cleanup task once per day on ', new Date () );
+  return cron.schedule('0 0 * * *', async function () {
+    console.log('running the log cleanup task once per day on ', new Date());
     var result = await logsTask()
     console.log('daily log task returned ', result)
   });
@@ -83,19 +83,19 @@ export const logsTask = async function () {
   return new Promise(async (resolve, reject) => {
     try {
       var masterSalt = getLogSalt()
-      
+
       // then get the raw logs
       var rawLogs = await readRawLogs(masterSalt) as RawLogs[];
-    
+
       var sorted = await sortAndFilterLogs(rawLogs) as FormattedLogsArray;
-    
+
       var result = await writeDailyLogs(sorted);
-    
+
       // last, clear old logs
       await clearRawLogs();
 
       resolve(result)
-    
+
     } catch (err) {
       console.error('error writing daily log file', err)
       reject(err)
@@ -115,9 +115,9 @@ async function readRawLogs(masterSalt: string) {
       try {
         if (log && !(log === " ") && !(log === "")) {
           try {
-            var logJSON      = JSON.parse(log) as RawLogs;
+            var logJSON = JSON.parse(log) as RawLogs;
             logJSON.uniqueId = sha256(logJSON.url)
-            logJSON.address  = sha256.hmac(masterSalt, logJSON.address)
+            logJSON.address = sha256.hmac(masterSalt, logJSON.address)
             prettyLogs.push(logJSON)
           } catch (err) {
             console.error('error reading json', err)
@@ -140,7 +140,7 @@ async function readRawLogs(masterSalt: string) {
   @readRawLogs
     retrieves the raw logs and reads them into a json array
 */
-async function writeDailyLogs(logs:FormattedLogsArray) {
+async function writeDailyLogs(logs: FormattedLogsArray) {
   return new Promise((resolve, reject) => {
     var data = {
       lastUpdate: new Date(),
@@ -150,14 +150,14 @@ async function writeDailyLogs(logs:FormattedLogsArray) {
       var log = logs[key]
       if (log && log.addresses) {
         data.summary.push(log)
-      } 
+      }
     }
     fs.writeFile(logFileLocation, JSON.stringify(data), {}, function (err) {
       if (err) {
         console.log('ERROR SAVING ACCESS LOG', err)
-        resolve({success: false, logs: data, error: err})
+        resolve({ success: false, logs: data, error: err })
       } else {
-        resolve({success: true, logs: data})
+        resolve({ success: true, logs: data })
 
       }
     });
@@ -165,7 +165,7 @@ async function writeDailyLogs(logs:FormattedLogsArray) {
 }
 
 async function generateLogFiles() {
-  return new Promise( async (resolve, reject)  => {
+  return new Promise(async (resolve, reject) => {
     try {
       // create three files (access.log, daily.log, and proofs.log) with names corresponding to the date
       var date = new Date();
@@ -175,7 +175,7 @@ async function generateLogFiles() {
         date.toISOString().slice(0, 10) + '-proofs.log',
       ]
 
-      let paths: (string )[] = []
+      let paths: (string)[] = []
       for (var name of names) {
         try {
 
@@ -221,24 +221,24 @@ async function createLogFile(name: string) {
   });
 }
 
-/* 
-  @sortAndFilterLogs 
+/*
+  @sortAndFilterLogs
     logs - access.log output (raw data in array)
     resolves to an array of data payloads
 */
 async function sortAndFilterLogs(logs: RawLogs[]) {
   return new Promise(async (resolve, reject) => {
     var formatted_logs = [] as FormattedLogsArray;
-    
+
     try {
       for (var log of logs) {
         if (log.url && log.uniqueId) {
           if (formatted_logs[log.uniqueId] && !formatted_logs[log.uniqueId].addresses.includes(log.address)) {
-            formatted_logs[ log.uniqueId ].addresses.push(log.address)
+            formatted_logs[log.uniqueId].addresses.push(log.address)
           } else {
             formatted_logs[log.uniqueId] = {
-              addresses: [ log.address ],
-              url : log.url
+              addresses: [log.address],
+              url: log.url
             }
           }
         }
@@ -252,7 +252,7 @@ async function sortAndFilterLogs(logs: RawLogs[]) {
 }
 
 /*
-  @clearRawLogs 
+  @clearRawLogs
     removes the old access logs file
 */
 async function clearRawLogs() {
