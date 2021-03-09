@@ -211,13 +211,13 @@ async function generateLogFiles() {
 */
 async function createLogFile(name: string) {
   return new Promise(async (resolve, reject) => {
-    resolve('/tmp/' + name as string)
-    // tmp.file(function _tempFileCreated(err, path:string, fd) {
-    //   if (err) reject(err);
-    //   console.log('fd', fd)
-    //   console.log('File: ', path);
-    //   resolve (path);
-    // });
+    // resolve('/tmp/' + name as string)
+    tmp.file(function _tempFileCreated(err, path:string, fd) {
+      if (err) reject(err);
+      console.log('fd', fd)
+      console.log('File: ', path);
+      resolve (path);
+    });
   });
 }
 

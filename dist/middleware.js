@@ -21,7 +21,8 @@ function generateKoiMiddleware(logFileLocation) {
             console.log('logFileLocation: ', logFileLocation);
             try {
                 const accessLogStream = fs_1.default.createWriteStream(logFileLocation, { flags: 'a' });
-                resolve(morgan_1.default('{"address":":remote-addr","user":":remote-user","date":":date","method":":method","url":":url","type":"HTTP/:http-version","status":":status","res":{"length":":res[content-length]","time" : ":response-time ms"}, "ref":":referrer","agent":":user-agent", "trace":":trace"}', { stream: accessLogStream }));
+                // parse for headers here to get "koi", and "koi-meta" and store in a separate stream to write to the fule at proofFileLocation (maybe needs a separate log middleware )
+                resolve(morgan_1.default('{"address":":remote-addr","user":":remote-user","date":":date","method":":method","url":":url","type":"HTTP/:http-version","status":":status","res":{"length":":res[content-length]","time" : ":response-time ms"}, "ref":":referrer","agent":":user-agent"}', { stream: accessLogStream }));
             }
             catch (err) {
                 reject(err);

@@ -37,21 +37,24 @@ const js_sha256_1 = require("js-sha256");
 const cryptoRandomString = require("crypto-random-string");
 const node_cron_1 = __importDefault(require("node-cron"));
 const middleware_1 = require("./middleware");
+const tmp_1 = __importDefault(require("tmp"));
+// these will be populated when the library is instantiated
+var logFileLocation;
+var rawLogFileLocation;
+var proofFileLocation;
 function setDefaults() {
-    return __awaiter(this, void 0, void 0, function* () {
-        logFileLocation = "";
-        rawLogFileLocation = "";
-        proofFileLocation = "";
-    });
+    logFileLocation = "";
+    rawLogFileLocation = "";
+    proofFileLocation = "";
 }
 function getLogSalt() {
     return js_sha256_1.sha256(cryptoRandomString({ length: 10 }));
 }
 const joinKoi = function (app) {
     return __awaiter(this, void 0, void 0, function* () {
-        yield setDefaults();
+        setDefaults();
         yield generateLogFiles();
-        const koiMiddleware = middleware_1.generateKoiMiddleware(logFileLocation);
+        const koiMiddleware = yield middleware_1.generateKoiMiddleware(logFileLocation);
         app.use(koiMiddleware);
         app.get("/logs", exports.koiLogsHelper);
         exports.koiLogsDailyTask(); // start the daily log task
@@ -210,13 +213,14 @@ function generateLogFiles() {
 function createLogFile(name) {
     return __awaiter(this, void 0, void 0, function* () {
         return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
-            resolve('/tmp/' + name);
-            // tmp.file(function _tempFileCreated(err, path:string, fd) {
-            //   if (err) reject(err);
-            //   console.log('fd', fd)
-            //   console.log('File: ', path);
-            //   resolve (path);
-            // });
+            // resolve('/tmp/' + name as string)
+            tmp_1.default.file(function _tempFileCreated(err, path, fd) {
+                if (err)
+                    reject(err);
+                console.log('fd', fd);
+                console.log('File: ', path);
+                resolve(path);
+            });
         }));
     });
 }
