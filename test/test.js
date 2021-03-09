@@ -4,7 +4,7 @@ const { joinKoi } = require('../dist/index.js');
 var app = new Express ();
 
 // add koi tasks
-joinKoi(app);
+joinKoi(app, "./");
 
 // start the server listener
 app.listen(process.env.PORT || 3000, () => {

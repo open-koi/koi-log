@@ -11,6 +11,7 @@ import tmp from 'tmp';
 var logFileLocation: string;
 var rawLogFileLocation: string;
 var proofFileLocation: string;
+var fileDIR: string;
 
 function setDefaults() {
   logFileLocation = "";
@@ -48,14 +49,16 @@ function getLogSalt() {
 
 }
 
-export const joinKoi = async function (app: ExpressApp) {
+export const joinKoi = async function (app: ExpressApp, path?: string) {
+  if (path) {
+    fileDIR = path;
+  }
   setDefaults()
   await generateLogFiles()
   const koiMiddleware = await generateKoiMiddleware(logFileLocation)
   app.use(koiMiddleware);
   app.get("/logs", koiLogsHelper);
   koiLogsDailyTask() // start the daily log task
-
 }
 
 export const koiLogsHelper = function (req: Request, res: Response) {
@@ -212,12 +215,16 @@ async function generateLogFiles() {
 async function createLogFile(name: string) {
   return new Promise(async (resolve, reject) => {
     // resolve('/tmp/' + name as string)
-    tmp.file(function _tempFileCreated(err, path:string, fd) {
-      if (err) reject(err);
-      console.log('fd', fd)
-      console.log('File: ', path);
-      resolve (path);
-    });
+    if (fileDIR > '') {
+      resolve (fileDIR + name);
+    } else {
+      tmp.file(function _tempFileCreated(err, path:string, fd) {
+        if (err) reject(err);
+        console.log('fd', fd)
+        console.log('File: ', path);
+        resolve (path);
+      });
+    }
   });
 }
 

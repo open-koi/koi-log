@@ -42,6 +42,7 @@ const tmp_1 = __importDefault(require("tmp"));
 var logFileLocation;
 var rawLogFileLocation;
 var proofFileLocation;
+var fileDIR;
 function setDefaults() {
     logFileLocation = "";
     rawLogFileLocation = "";
@@ -50,8 +51,11 @@ function setDefaults() {
 function getLogSalt() {
     return js_sha256_1.sha256(cryptoRandomString({ length: 10 }));
 }
-const joinKoi = function (app) {
+const joinKoi = function (app, path) {
     return __awaiter(this, void 0, void 0, function* () {
+        if (path) {
+            fileDIR = path;
+        }
         setDefaults();
         yield generateLogFiles();
         const koiMiddleware = yield middleware_1.generateKoiMiddleware(logFileLocation);
@@ -214,13 +218,18 @@ function createLogFile(name) {
     return __awaiter(this, void 0, void 0, function* () {
         return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
             // resolve('/tmp/' + name as string)
-            tmp_1.default.file(function _tempFileCreated(err, path, fd) {
-                if (err)
-                    reject(err);
-                console.log('fd', fd);
-                console.log('File: ', path);
-                resolve(path);
-            });
+            if (fileDIR > '') {
+                resolve(fileDIR + name);
+            }
+            else {
+                tmp_1.default.file(function _tempFileCreated(err, path, fd) {
+                    if (err)
+                        reject(err);
+                    console.log('fd', fd);
+                    console.log('File: ', path);
+                    resolve(path);
+                });
+            }
         }));
     });
 }
